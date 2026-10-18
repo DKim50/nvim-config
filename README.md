@@ -10,9 +10,8 @@ Plugins install themselves on first launch, pinned to the versions in `lazy-lock
 mv ~/.config/nvim ~/.config/nvim.bak 2>/dev/null
 mv ~/.local/share/nvim ~/.local/share/nvim.bak 2>/dev/null
 
-# 2. Clone into the config folder (repo is private, so use gh)
-gh auth login        # once per machine
-gh repo clone DKim50/nvim-config ~/.config/nvim
+# 2. Clone into the config folder
+git clone https://github.com/DKim50/nvim-config.git ~/.config/nvim
 
 # 3. Launch. lazy.nvim, the plugins, treesitter parsers and the
 #    language servers (via Mason) all install themselves.
