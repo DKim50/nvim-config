@@ -145,14 +145,51 @@ vim.opt.rtp:prepend(lazypath)
 -- ------------------------------------------------------------
 require("lazy").setup({
 
-  -- ---------- Colorscheme : VS Code Dark+ (the active one) ----------
+  -- ---------- Colorscheme : oxocarbon (the active one) ----------
+  -- Built from IBM's Carbon design system palette. Mostly white/gray text
+  -- with sharp accents: blue keywords, pink functions, cyan `def`,
+  -- purple strings, teal None/True/False, dim gray comments.
+  -- Compare themes live:  :Telescope colorscheme enable_preview=true
+  {
+    "nyoom-engineering/oxocarbon.nvim",
+    lazy = false,
+    priority = 1000,  -- load before everything else
+    config = function()
+      -- ===== BACKGROUND COLOR KNOB =====
+      -- Change this one value and restart nvim.
+      --   "#0d0d0d"  near-black (same as the other themes)
+      --   nil        oxocarbon's own background (#161616)
+      local BG = "#0d0d0d"
+
+      -- oxocarbon has no setup() options, so after it loads, swap its
+      -- background (#161616) for BG in every highlight group that uses it.
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        pattern = "oxocarbon",
+        desc = "Swap oxocarbon's background for the BG knob",
+        callback = function()
+          if not BG then return end
+          for name, hl in pairs(vim.api.nvim_get_hl(0, {})) do
+            if hl.bg == 0x161616 then
+              hl.bg = BG
+              vim.api.nvim_set_hl(0, name, hl)
+            end
+          end
+        end,
+      })
+
+      vim.o.background = "dark"
+      vim.cmd.colorscheme("oxocarbon")  -- this line is what makes it the active theme
+    end,
+  },
+
+  -- ---------- Colorscheme : VS Code Dark+ (backup) ----------
   -- Same syntax colors as VS Code: blue def/class, pink if/return,
   -- yellow functions, light-blue variables, orange strings, green comments.
-  -- Compare themes live:  :Telescope colorscheme enable_preview=true
+  -- Switch with :colorscheme vscode
   {
     "Mofiqul/vscode.nvim",
     lazy = false,
-    priority = 1000,  -- load before everything else
+    priority = 1000,
     config = function()
       -- ===== BACKGROUND COLOR KNOB =====
       -- Change this one value and restart nvim.
@@ -175,7 +212,6 @@ require("lazy").setup({
         style = "dark",
         color_overrides = overrides,
       })
-      vim.cmd.colorscheme("vscode")
     end,
   },
 
