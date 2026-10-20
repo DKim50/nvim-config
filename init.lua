@@ -145,11 +145,47 @@ vim.opt.rtp:prepend(lazypath)
 -- ------------------------------------------------------------
 require("lazy").setup({
 
-  -- ---------- Colorscheme ----------
+  -- ---------- Colorscheme : VS Code Dark+ (the active one) ----------
+  -- Same syntax colors as VS Code: blue def/class, pink if/return,
+  -- yellow functions, light-blue variables, orange strings, green comments.
+  -- Compare themes live:  :Telescope colorscheme enable_preview=true
+  {
+    "Mofiqul/vscode.nvim",
+    lazy = false,
+    priority = 1000,  -- load before everything else
+    config = function()
+      -- ===== BACKGROUND COLOR KNOB =====
+      -- Change this one value and restart nvim.
+      --   "#0d0d0d"  near-black (same as the tokyonight setup)
+      --   nil        the real VS Code background (#1F1F1F)
+      local BG = "#0d0d0d"
+
+      local overrides = {}
+      if BG then
+        overrides = {
+          vscBack           = BG,         -- main editor background
+          vscTabCurrent     = BG,         -- the active buffer tab
+          vscLeftDark       = BG,         -- tab bar behind the tabs
+          vscPopupBack      = BG,         -- floating windows, completion menu
+          vscCursorDarkDark = "#1c1c1c",  -- the highlighted current line
+        }
+      end
+
+      require("vscode").setup({
+        style = "dark",
+        color_overrides = overrides,
+      })
+      vim.cmd.colorscheme("vscode")
+    end,
+  },
+
+  -- ---------- Colorscheme : tokyonight (backup) ----------
+  -- Still set up, just not switched on. Go back with :colorscheme tokyonight
+  -- or make it permanent by moving the colorscheme() call back here.
   {
     "folke/tokyonight.nvim",
     lazy = false,
-    priority = 1000,  -- load before everything else
+    priority = 1000,
     config = function()
       -- ===== BACKGROUND COLOR KNOB =====
       -- Change this one value and restart nvim.
@@ -181,7 +217,6 @@ require("lazy").setup({
           hl.CursorLine   = { bg = "#1c1c1c" }  -- the highlighted current line
         end,
       })
-      vim.cmd.colorscheme("tokyonight")
     end,
   },
 
@@ -279,7 +314,8 @@ require("lazy").setup({
     "nvim-lualine/lualine.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
-      require("lualine").setup({ options = { theme = "tokyonight" } })
+      -- "auto" follows whichever colorscheme is active
+      require("lualine").setup({ options = { theme = "auto" } })
     end,
   },
 
