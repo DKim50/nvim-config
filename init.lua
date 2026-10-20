@@ -256,6 +256,207 @@ require("lazy").setup({
     end,
   },
 
+  -- ---------- Start screen ----------
+  -- Shows when you run `nvim` with no file. Press a letter to pick an action.
+  -- snacks.nvim is a bundle of small tools; only its dashboard is turned on.
+  {
+    "folke/snacks.nvim",
+    lazy = false,
+    priority = 1000,
+    config = function()
+      -- ===== HEADER TEXT KNOB =====
+      -- Make your own at patorjk.com/software/taag  (font: "ANSI Shadow")
+      local header = {
+        "███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗",
+        "████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║",
+        "██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║",
+        "██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║",
+        "██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║",
+        "╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
+      }
+
+      -- One color per header line, top to bottom: an oxocarbon gradient
+      -- from cyan through blue and purple to pink.
+      local gradient = { "#3ddbd9", "#82cfff", "#78a9ff", "#be95ff", "#ff7eb6", "#ee5396" }
+
+      -- ===== STARFIELD KNOB =====
+      -- Twinkling stars in the empty space around the menu.
+      local STARS = {
+        enabled = true,
+        density = 0.02,  -- share of empty cells holding a star (0.02 = 2%)
+        fps     = 10,    -- redraws per second
+        -- mostly white, with the odd oxocarbon cyan / blue / purple / pink star
+        colors  = { "#dde1e6", "#dde1e6", "#dde1e6", "#3ddbd9", "#78a9ff", "#be95ff", "#ff7eb6" },
+      }
+      -- A star brightens through these, then dims back down.
+      local GLYPHS     = { "·", "·", "+", "*" }
+      local BRIGHTNESS = { 0.3, 0.55, 0.8, 1.0 }  -- how far each step is from the background
+
+      -- Mix a color toward the background: amount 1 = full color, 0 = invisible.
+      local function fade(color, bg, amount)
+        local function channel(hex, i) return tonumber(hex:sub(i, i + 1), 16) end
+        local out = "#"
+        for _, i in ipairs({ 2, 4, 6 }) do
+          local c, b = channel(color, i), channel(bg, i)
+          out = out .. string.format("%02x", math.floor(b + (c - b) * amount + 0.5))
+        end
+        return out
+      end
+
+      local function set_colors()
+        for i, color in ipairs(gradient) do
+          vim.api.nvim_set_hl(0, "DashHeader" .. i, { fg = color })
+        end
+        local normal_bg = vim.api.nvim_get_hl(0, { name = "Normal" }).bg
+        local bg = normal_bg and string.format("#%06x", normal_bg) or "#000000"
+        for c, color in ipairs(STARS.colors) do
+          for level, amount in ipairs(BRIGHTNESS) do
+            vim.api.nvim_set_hl(0, ("DashStar%d_%d"):format(c, level), { fg = fade(color, bg, amount) })
+          end
+        end
+      end
+      set_colors()
+      -- :colorscheme wipes custom colors, so put these back after a switch
+      vim.api.nvim_create_autocmd("ColorScheme", { callback = set_colors })
+
+      local header_section = {}
+      for i, line in ipairs(header) do
+        local color = "DashHeader" .. math.min(i, #gradient)
+        table.insert(header_section, { text = { { line, hl = color, align = "center" } } })
+      end
+      header_section[#header_section].padding = 2  -- space below the logo
+
+      require("snacks").setup({
+        dashboard = {
+          sections = {
+            header_section,
+            { icon = " ", title = "Keymaps",      section = "keys",         indent = 2, padding = 1 },
+            { icon = " ", title = "Recent Files", section = "recent_files", indent = 2, padding = 1 },
+            { icon = " ", title = "Projects",     section = "projects",     indent = 2, padding = 1 },
+            { section = "startup" },
+          },
+        },
+      })
+
+      -- ---------- Starfield animation ----------
+      -- Stars are "extmarks": decorations drawn on top of the dashboard's
+      -- blank space without changing its text. A timer redraws them ~10x/sec.
+      local ns = vim.api.nvim_create_namespace("dashboard_stars")
+      local field  -- the running starfield: { buf, win, timer, stars, nlines, height }
+
+      local function stop_stars()
+        if not field then return end
+        field.timer:stop()
+        field.timer:close()
+        if vim.api.nvim_buf_is_valid(field.buf) then
+          vim.api.nvim_buf_clear_namespace(field.buf, ns, 0, -1)
+        end
+        field = nil
+      end
+
+      -- Scatter stars over the window, leaving a clear border around the menu.
+      local function place_stars(buf, width, height)
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        local top, bottom, left, right = math.huge, -1, math.huge, -1
+        for row, line in ipairs(lines) do
+          local first = line:find("%S")
+          if first then
+            top    = math.min(top, row - 1)
+            bottom = math.max(bottom, row - 1)
+            left   = math.min(left, vim.fn.strdisplaywidth(line:sub(1, first - 1)))
+            right  = math.max(right, vim.fn.strdisplaywidth((line:gsub("%s+$", ""))))
+          end
+        end
+        top, bottom, left, right = top - 1, bottom + 1, left - 4, right + 4
+
+        local stars = {}
+        for row = 0, height - 1 do
+          for col = 0, width - 1 do
+            local in_menu = row >= top and row <= bottom and col >= left and col < right
+            if not in_menu and math.random() < STARS.density then
+              local size = math.random()
+              table.insert(stars, {
+                row   = row,
+                col   = col,
+                color = math.random(#STARS.colors),
+                max   = size < 0.6 and 2 or size < 0.9 and 3 or 4,  -- small / medium / big star
+                speed = 0.6 + math.random(),                         -- one twinkle every ~4-10s
+                phase = math.random() * 2 * math.pi,                 -- so they don't sync up
+              })
+            end
+          end
+        end
+        return stars, #lines
+      end
+
+      local function draw(t)
+        local f = field
+        if not (f and vim.api.nvim_buf_is_valid(f.buf) and vim.api.nvim_win_is_valid(f.win)
+                and vim.api.nvim_win_get_buf(f.win) == f.buf) then
+          return stop_stars()  -- the dashboard is gone
+        end
+        vim.api.nvim_buf_clear_namespace(f.buf, ns, 0, -1)
+
+        local below = {}  -- stars past the last buffer line, keyed by row
+        for _, s in ipairs(f.stars) do
+          local wave = (math.sin(t * s.speed + s.phase) + 1) / 2  -- 0..1 and back
+          local level = math.min(math.floor(wave * (s.max + 1)), s.max)
+          if level > 0 then
+            local chunk = { GLYPHS[level], ("DashStar%d_%d"):format(s.color, level) }
+            if s.row < f.nlines then
+              vim.api.nvim_buf_set_extmark(f.buf, ns, s.row, 0, { virt_text = { chunk }, virt_text_win_col = s.col })
+            else
+              below[s.row] = below[s.row] or {}
+              table.insert(below[s.row], { col = s.col, chunk = chunk })
+            end
+          end
+        end
+
+        -- The buffer ends before the window does, so the bottom rows are
+        -- "virtual lines" hung under the last line.
+        if f.nlines < f.height then
+          local vlines = {}
+          for row = f.nlines, f.height - 1 do
+            local items, chunks, at = below[row] or {}, {}, 0
+            table.sort(items, function(a, b) return a.col < b.col end)
+            for _, it in ipairs(items) do
+              table.insert(chunks, { string.rep(" ", it.col - at) })
+              table.insert(chunks, it.chunk)
+              at = it.col + 1
+            end
+            table.insert(vlines, chunks)
+          end
+          vim.api.nvim_buf_set_extmark(f.buf, ns, f.nlines - 1, 0, { virt_lines = vlines })
+        end
+      end
+
+      local function start_stars()
+        stop_stars()
+        if not STARS.enabled then return end
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          local buf = vim.api.nvim_win_get_buf(win)
+          if vim.bo[buf].filetype == "snacks_dashboard" and vim.bo[buf].buftype ~= "terminal" then
+            set_colors()  -- the theme has fully loaded by now, so fades match its background
+            local height = vim.api.nvim_win_get_height(win)
+            local stars, nlines = place_stars(buf, vim.api.nvim_win_get_width(win), height)
+            field = { buf = buf, win = win, timer = vim.uv.new_timer(), stars = stars, nlines = nlines, height = height }
+            local start = vim.uv.now()
+            field.timer:start(0, math.floor(1000 / STARS.fps), vim.schedule_wrap(function()
+              -- if anything goes wrong, stop quietly instead of erroring 10x a second
+              if not pcall(draw, (vim.uv.now() - start) / 1000) then stop_stars() end
+            end))
+            return
+          end
+        end
+      end
+
+      math.randomseed(os.time())  -- a different sky every launch
+      -- Snacks fires these after it draws (also on resize) and when it closes.
+      vim.api.nvim_create_autocmd("User", { pattern = "SnacksDashboardUpdatePost", callback = start_stars })
+      vim.api.nvim_create_autocmd("User", { pattern = "SnacksDashboardClosed", callback = stop_stars })
+    end,
+  },
+
   -- ---------- Icons (needs the Nerd Font) ----------
   { "nvim-tree/nvim-web-devicons", lazy = true },
 
