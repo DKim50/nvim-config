@@ -37,7 +37,8 @@ xcode-select --install   # C compiler, needed to build treesitter parsers
 | git | lazy.nvim clones plugins |
 | ripgrep (`rg`) | Telescope live grep (`<leader>fg`) |
 | tree-sitter CLI + C compiler | builds treesitter parsers |
-| node / npm | Mason installs `pyright` and `ts_ls` through npm |
+| node / npm | Mason installs `pyright`, `ts_ls` and the HTML, CSS and Emmet servers through npm |
+| python3 (with `venv`) | Mason installs `debugpy` for the Python debugger (`<leader>b`) |
 | A Nerd Font | file icons; set your terminal's font to *JetBrainsMono Nerd Font* |
 
 Optional formatters for format-on-save (without them it falls back to the LSP formatter):
@@ -65,9 +66,15 @@ Leader is `Space`.
 | `<leader>ff` `fg` `fb` `fr` `fh` `fs` | Find files, grep, buffers, recent, help, symbols |
 | `gd` / `gr` / `K` | Definition / references / hover (LSP) |
 | `<leader>rn` / `<leader>ca` / `<leader>d` | Rename / code action / show diagnostic |
+| `Ctrl-y` / `Ctrl-n` / `Ctrl-p` (insert) | Accept / next / previous suggestion. Accepting expands Emmet (`!`, `ul>li*3`) |
+| `Tab` / `Shift-Tab` (insert) | Jump to the next / previous blank in an expanded snippet |
 | `<leader>gb` / `<leader>gp` | Git blame line / preview hunk |
 | `<leader>rr` | Reload files changed on disk |
 | `Ctrl-\` | Floating terminal |
+| `<leader>bb` / `<leader>bB` | Debug: toggle breakpoint / conditional breakpoint |
+| `<leader>bc` `bn` `bi` `bo` | Debug: continue (start), next line, step into, step out |
+| `F5` `F10` `F11` `F12` | Same as above (hold `fn` on a Mac laptop) |
+| `<leader>bt` / `<leader>bu` / `<leader>be` | Debug: stop + close panels / toggle panels / evaluate under cursor |
 
 Press `Space` and wait to see everything in the which-key popup.
 

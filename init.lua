@@ -23,6 +23,18 @@ opt.shiftwidth = 2           -- >> and << shift by 2
 opt.expandtab = true         -- insert spaces, never literal tabs
 opt.smartindent = true
 
+-- Web files indent by 4 like VS Code (Python already uses 4). softtabstop
+-- makes Backspace remove a whole indent level, not one space.
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "html", "css", "javascript", "javascriptreact", "typescript", "typescriptreact" },
+  desc = "Indent web files by 4",
+  callback = function()
+    vim.opt_local.tabstop = 4
+    vim.opt_local.shiftwidth = 4
+    vim.opt_local.softtabstop = 4
+  end,
+})
+
 opt.ignorecase = true        -- /foo matches Foo
 opt.smartcase = true         -- ...unless you type a capital: /Foo is exact
 opt.incsearch = true         -- jump to matches as you type
@@ -148,7 +160,7 @@ require("lazy").setup({
   -- ---------- Colorscheme : oxocarbon (the active one) ----------
   -- Built from IBM's Carbon design system palette. Mostly white/gray text
   -- with sharp accents: blue keywords, pink functions, cyan `def`,
-  -- purple strings, teal None/True/False, dim gray comments.
+  -- purple strings, teal None/True/False, green comments (COMMENT knob).
   -- Compare themes live:  :Telescope colorscheme enable_preview=true
   {
     "nyoom-engineering/oxocarbon.nvim",
@@ -161,18 +173,30 @@ require("lazy").setup({
       --   nil        oxocarbon's own background (#161616)
       local BG = "#0d0d0d"
 
+      -- ===== COMMENT COLOR KNOB =====
+      -- Change this one value and restart nvim.
+      --   "#42be65"  oxocarbon's green (used nowhere else in code)
+      --   "#8d8d8d"  lighter gray
+      --   nil        oxocarbon's own dim gray (#575757)
+      local COMMENT = "#42be65"
+
       -- oxocarbon has no setup() options, so after it loads, swap its
-      -- background (#161616) for BG in every highlight group that uses it.
+      -- background (#161616) for BG in every highlight group that uses it,
+      -- and recolor comments with COMMENT.
       vim.api.nvim_create_autocmd("ColorScheme", {
         pattern = "oxocarbon",
-        desc = "Swap oxocarbon's background for the BG knob",
+        desc = "Apply the BG and COMMENT knobs to oxocarbon",
         callback = function()
-          if not BG then return end
-          for name, hl in pairs(vim.api.nvim_get_hl(0, {})) do
-            if hl.bg == 0x161616 then
-              hl.bg = BG
-              vim.api.nvim_set_hl(0, name, hl)
+          if BG then
+            for name, hl in pairs(vim.api.nvim_get_hl(0, {})) do
+              if hl.bg == 0x161616 then
+                hl.bg = BG
+                vim.api.nvim_set_hl(0, name, hl)
+              end
             end
+          end
+          if COMMENT then
+            vim.api.nvim_set_hl(0, "Comment", { fg = COMMENT, italic = true })
           end
         end,
       })
@@ -575,8 +599,18 @@ require("lazy").setup({
     },
     config = function()
       require("mason").setup()
+      -- Saving an HTML file tidies it. Keep <head> and <body> indented inside
+      -- <html> like VS Code, and don't add blank lines before them.
+      vim.lsp.config("html", {
+        settings = { html = { format = { indentInnerHtml = true, extraLiners = "" } } },
+      })
+      -- Emmet only where you write tags. In CSS files its shortcuts crowd
+      -- out the real suggestions (col -> "columns: ;" above color).
+      vim.lsp.config("emmet_language_server", { filetypes = { "html", "javascriptreact", "typescriptreact" } })
       require("mason-lspconfig").setup({
-        ensure_installed = { "lua_ls", "pyright", "ts_ls" },
+        -- html / cssls: tag, attribute and CSS property suggestions + hover
+        -- docs (the same servers VS Code uses). emmet: ul>li*3 style shortcuts.
+        ensure_installed = { "lua_ls", "pyright", "ts_ls", "html", "cssls", "emmet_language_server" },
       })
 
       -- Keymaps attach only once a language server is running
@@ -628,7 +662,23 @@ require("lazy").setup({
   },
 
   -- ---------- Auto-close brackets and quotes ----------
-  { "windwp/nvim-autopairs", event = "InsertEnter", config = true },
+  {
+    "windwp/nvim-autopairs",
+    event = "InsertEnter",
+    config = function()
+      local npairs = require("nvim-autopairs")
+      local Rule = require("nvim-autopairs.rule")
+      npairs.setup()
+      -- HTML: Enter between <div>|</div> moves </div> down and puts the
+      -- cursor on an indented line in between, like VS Code.
+      npairs.add_rule(Rule("<%a[^<>]*>[^<]*$", "^</", "html"):use_regex(true):only_cr())
+    end,
+  },
+
+  -- ---------- Auto-close and auto-rename HTML tags ----------
+  -- Type <div> and </div> appears after the cursor. Change <div> to <section>
+  -- and the closing tag changes too. Uses the treesitter parsers above.
+  { "windwp/nvim-ts-autotag", event = { "BufReadPre", "BufNewFile" }, opts = {} },
 
   -- ---------- Indent guide lines ----------
   { "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {} },
@@ -648,6 +698,182 @@ require("lazy").setup({
         open_mapping = [[<C-\>]],
         direction = "float",
       })
+    end,
+  },
+
+  -- ---------- Debugger : breakpoints, stepping, variables panel ----------
+  -- Like VS Code's debugger. Press Space b and which-key lists every key.
+  -- Python only for now; debugpy (the Python debug adapter) installs itself
+  -- through Mason the first time nvim starts.
+  --   Space b b   toggle a breakpoint (red dot)      F5   start / continue
+  --   Space b n   next line (step over)              F10  step over
+  --   Space b i   step into a function               F11  step into
+  --   Space b o   step out of a function             F12  step out
+  {
+    "mfussenegger/nvim-dap",
+    event = "VeryLazy",
+    dependencies = {
+      "rcarriga/nvim-dap-ui",
+      "nvim-neotest/nvim-nio",      -- required by nvim-dap-ui
+      "mfussenegger/nvim-dap-python",
+      "theHamsta/nvim-dap-virtual-text",  -- variable values at the end of each line
+      "mason-org/mason.nvim",
+    },
+    config = function()
+      local dap, dapui = require("dap"), require("dapui")
+      dapui.setup()
+
+      -- Variable values at the end of each line while paused, like an IDE
+      require("nvim-dap-virtual-text").setup({
+        all_references = true,   -- show the value on every line the variable appears, not just where it's first set
+        virt_text_pos = "eol",   -- at the end of the line like VS Code ("inline" puts them right after each variable)
+      })
+
+      -- Python adapter: debugpy lives in its own venv inside Mason's folder
+      local debugpy = vim.fn.stdpath("data") .. "/mason/packages/debugpy/venv/bin/python"
+      require("dap-python").setup(debugpy)
+
+      -- Give debugpy 15s to start instead of 4. Past the limit nvim-dap warns
+      -- "Debug adapter didn't respond", and that two-line warning pops up a
+      -- "Press ENTER" prompt that freezes the debugger until you press a key.
+      local python_adapter = dap.adapters.python
+      dap.adapters.python = function(cb, config)
+        python_adapter(function(adapter)
+          adapter.options = vim.tbl_extend("force", adapter.options or {}, { initialize_timeout_sec = 15 })
+          cb(adapter)
+        end, config)
+      end
+
+      -- Keep only the "file" config so F5 just runs the current file instead of
+      -- asking which config to use (delete these 3 lines to get the others back)
+      dap.configurations.python = vim.tbl_filter(function(c)
+        return c.name == "file"
+      end, dap.configurations.python)
+
+      -- Show the paused line in your code window no matter which panel the
+      -- cursor is in. The default picks "the window you were in before",
+      -- which fails if that was a panel (the cursor then stays stuck in the
+      -- terminal and no ▶ appears).
+      dap.defaults.fallback.switchbuf = function(bufnr, line, column)
+        local target
+        for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+          local buf = vim.api.nvim_win_get_buf(win)
+          if buf == bufnr then target = win; break end                 -- already showing this file
+          if not target and vim.bo[buf].buftype == "" then target = win end  -- else any normal file window
+        end
+        if not target then return end
+        vim.api.nvim_win_set_buf(target, bufnr)
+        pcall(vim.api.nvim_win_set_cursor, target, { line, math.max((column or 1) - 1, 0) })
+        vim.api.nvim_win_call(target, function() vim.cmd("normal! zv") end)
+        -- keep the cursor where it is if you're typing in the REPL
+        if vim.bo.filetype ~= "dap-repl" then vim.api.nvim_set_current_win(target) end
+      end
+
+      -- When the program starts, move the cursor into its terminal window so
+      -- you can answer input() prompts (press i, type, Enter). This waits
+      -- until the panels have finished opening, because opening them hands
+      -- the cursor back to your code (so nvim-dap's focus_terminal can't work).
+      dap.listeners.after.launch.focus_terminal = function()
+        local tries, steady = 0, 0
+        local timer = vim.uv.new_timer()
+        timer:start(100, 100, vim.schedule_wrap(function()
+          tries = tries + 1
+          local term_win, panels_open = nil, false
+          for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+            local buf = vim.api.nvim_win_get_buf(win)
+            if vim.bo[buf].buftype == "terminal" then term_win = win end
+            if vim.bo[buf].filetype == "dapui_watches" then panels_open = true end
+          end
+          if term_win and (panels_open or tries >= 15) then steady = steady + 1 end
+          if steady >= 2 then
+            timer:stop(); timer:close()
+            -- only while the program is still running (not already paused at a breakpoint)
+            local session = dap.session()
+            if session and not session.stopped_thread_id then
+              vim.api.nvim_set_current_win(term_win)
+            end
+          elseif tries >= 40 then
+            timer:stop(); timer:close()
+          end
+        end))
+      end
+
+      -- Install debugpy through Mason if it's missing
+      local registry = require("mason-registry")
+      if not registry.is_installed("debugpy") then
+        registry.refresh(function()
+          local ok, pkg = pcall(registry.get_package, "debugpy")
+          if ok then pkg:install() end
+        end)
+      end
+
+      -- Panels open when a debug session starts. They stay open after the
+      -- program ends so you can read its output (or the error that stopped
+      -- it); Space b t or Space b u closes them.
+      dap.listeners.before.attach.dapui_config = dapui.open
+      dap.listeners.before.launch.dapui_config = dapui.open
+
+      -- Gutter icons + colors. Re-applied on :colorscheme so they survive a switch.
+      vim.fn.sign_define("DapBreakpoint", { text = "●", texthl = "DapBreakpoint" })
+      vim.fn.sign_define("DapBreakpointCondition", { text = "◆", texthl = "DapBreakpoint" })
+      vim.fn.sign_define("DapStopped", { text = "▶", texthl = "DapStopped", linehl = "DapStoppedLine" })
+      local function set_dap_colors()
+        vim.api.nvim_set_hl(0, "DapBreakpoint", { fg = "#ee5396" })      -- pink-red dot
+        vim.api.nvim_set_hl(0, "DapStopped", { fg = "#42be65" })         -- green arrow
+        vim.api.nvim_set_hl(0, "DapStoppedLine", { bg = "#16261b" })     -- line you're paused on
+        vim.api.nvim_set_hl(0, "NvimDapVirtualText", { fg = "#8d8d8d", italic = true })         -- variable values (gray, so they don't look like code)
+        vim.api.nvim_set_hl(0, "NvimDapVirtualTextChanged", { fg = "#ff7eb6", italic = true })  -- a value that just changed (pink)
+      end
+      set_dap_colors()
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        desc = "Re-apply the debugger colors",
+        callback = set_dap_colors,
+      })
+
+      -- Start from the code even when the cursor is in the file tree or a
+      -- panel. Plain dap.continue only looks at the window you're in, so from
+      -- the tree it says "No configuration found for `NvimTree`".
+      local function continue()
+        if not dap.session() and not dap.configurations[vim.bo.filetype] then
+          local wins = vim.api.nvim_tabpage_list_wins(0)
+          table.insert(wins, 1, vim.fn.win_getid(vim.fn.winnr("#")))  -- the window you were just in, first
+          local code_win
+          for _, win in ipairs(wins) do
+            if win ~= 0 and dap.configurations[vim.bo[vim.api.nvim_win_get_buf(win)].filetype] then
+              code_win = win; break
+            end
+          end
+          if not code_win then
+            vim.notify("Debug: open a Python file first", vim.log.levels.WARN)
+            return
+          end
+          vim.api.nvim_set_current_win(code_win)
+        end
+        dap.continue()
+      end
+
+      -- Keymaps (F-keys need the fn key held on a Mac laptop)
+      map("n", "<F5>",  continue,      { desc = "Debug: start / continue" })
+      map("n", "<F10>", dap.step_over, { desc = "Debug: step over" })
+      map("n", "<F11>", dap.step_into, { desc = "Debug: step into" })
+      map("n", "<F12>", dap.step_out,  { desc = "Debug: step out" })
+      map("n", "<leader>bb", dap.toggle_breakpoint, { desc = "Toggle breakpoint" })
+      map("n", "<leader>bB", function()
+        dap.set_breakpoint(vim.fn.input("Break when: "))
+      end, { desc = "Conditional breakpoint" })
+      map("n", "<leader>bc", continue,      { desc = "Start / continue" })
+      map("n", "<leader>bn", dap.step_over, { desc = "Next line (step over)" })
+      map("n", "<leader>bi", dap.step_into, { desc = "Step into" })
+      map("n", "<leader>bo", dap.step_out,  { desc = "Step out" })
+      map("n", "<leader>bt", function()
+        if dap.session() then dap.terminate() end
+        dapui.close()
+      end, { desc = "Stop debugging + close panels" })
+      map("n", "<leader>bu", dapui.toggle,  { desc = "Toggle debug panels" })
+      map({ "n", "v" }, "<leader>be", dapui.eval, { desc = "Evaluate under cursor" })
+
+      local ok, wk = pcall(require, "which-key")
+      if ok then wk.add({ { "<leader>b", group = "debug" } }) end
     end,
   },
 
