@@ -41,6 +41,15 @@ xcode-select --install   # C compiler, needed to build treesitter parsers
 | python3 (with `venv`) | Mason installs `debugpy` for the Python debugger (`<leader>b`) |
 | A Nerd Font | file icons; set your terminal's font to *JetBrainsMono Nerd Font* |
 
+### Orion file icons
+
+`ORION_ICONS = true` in `init.lua` swaps the Nerd Font icons for the Orion
+IDE's icon set (`lua/orion_icons`). They live in a patched font, **JetBrainsMono
+Orion**, that isn't in this repo. Build and install it with
+`sh tools/orion-icons/build.sh` (needs the font above and the Orion repo at
+`~/Documents/Amphion/orion`), then set your terminal's font to *JetBrainsMono
+Orion*. Without it, set `ORION_ICONS = false` or the icons show as boxes.
+
 Optional formatters for format-on-save (without them it falls back to the LSP formatter):
 
 ```sh

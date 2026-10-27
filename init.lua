@@ -155,6 +155,14 @@ vim.opt.rtp:prepend(lazypath)
 -- ------------------------------------------------------------
 -- 6. PLUGINS
 -- ------------------------------------------------------------
+
+-- ===== ORION ICONS KNOB =====
+-- Change this one value and restart nvim.
+--   true   the Orion IDE's file and folder icons (lua/orion_icons). Needs
+--          Terminal's font set to "JetBrainsMono Orion", else you see boxes.
+--   false  the standard Nerd Font icons
+local ORION_ICONS = true
+
 require("lazy").setup({
 
   -- ---------- Colorscheme : oxocarbon (the active one) ----------
@@ -180,19 +188,35 @@ require("lazy").setup({
       --   nil        oxocarbon's own dim gray (#575757)
       local COMMENT = "#42be65"
 
+      -- ===== TRANSPARENT KNOB =====
+      -- Change this one value and restart nvim.
+      --   true   see-through: the terminal's background shows through the
+      --          editor, file tree and tab bar (popups stay solid BG)
+      --   false  solid BG everywhere
+      local TRANSPARENT = true
+
+      -- Popups keep a solid background so text over them stays readable
+      local function is_popup(name)
+        return name:find("Float") or name:find("Pmenu") or name:find("Blink")
+          or name:find("Telescope") or name:find("WhichKey") or name:find("Lazy")
+          or name:find("Mason") or name:find("Notify")
+      end
+
       -- oxocarbon has no setup() options, so after it loads, swap its
-      -- background (#161616) for BG in every highlight group that uses it,
-      -- and recolor comments with COMMENT.
+      -- background (#161616) for BG (or nothing, with TRANSPARENT) in every
+      -- highlight group that uses it, and recolor comments with COMMENT.
       vim.api.nvim_create_autocmd("ColorScheme", {
         pattern = "oxocarbon",
-        desc = "Apply the BG and COMMENT knobs to oxocarbon",
+        desc = "Apply the BG, TRANSPARENT and COMMENT knobs to oxocarbon",
         callback = function()
-          if BG then
-            for name, hl in pairs(vim.api.nvim_get_hl(0, {})) do
-              if hl.bg == 0x161616 then
+          for name, hl in pairs(vim.api.nvim_get_hl(0, {})) do
+            if hl.bg == 0x161616 and not hl.link then
+              if TRANSPARENT and not is_popup(name) then
+                hl.bg = nil
+              elseif BG then
                 hl.bg = BG
-                vim.api.nvim_set_hl(0, name, hl)
               end
+              vim.api.nvim_set_hl(0, name, hl)
             end
           end
           if COMMENT then
@@ -482,7 +506,16 @@ require("lazy").setup({
   },
 
   -- ---------- Icons (needs the Nerd Font) ----------
-  { "nvim-tree/nvim-web-devicons", lazy = true },
+  {
+    "nvim-tree/nvim-web-devicons",
+    lazy = true,
+    init = function()
+      if ORION_ICONS then require("orion_icons").replace_devicon_tables() end
+    end,
+    config = function()
+      if ORION_ICONS then require("orion_icons").setup_devicons() end
+    end,
+  },
 
   -- ---------- Fuzzy finder : your Cmd+P ----------
   {
@@ -540,9 +573,13 @@ require("lazy").setup({
     "nvim-tree/nvim-tree.lua",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
+      local decorators = { "Git", "Open", "Hidden", "Modified", "Bookmark", "Diagnostics", "Copied", "Cut" }
+      if ORION_ICONS then
+        table.insert(decorators, 1, require("orion_icons").folder_decorator())  -- Orion folder icons
+      end
       require("nvim-tree").setup({
         view = { width = 32 },
-        renderer = { group_empty = true },
+        renderer = { group_empty = true, decorators = decorators },
         filters = { dotfiles = false },
       })
       map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle file tree" })
