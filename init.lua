@@ -165,7 +165,8 @@ local ORION_ICONS = true
 
 require("lazy").setup({
 
-  -- ---------- Colorscheme : oxocarbon (the active one) ----------
+  -- ---------- Colorscheme : oxocarbon (backup) ----------
+  -- Switch with :colorscheme oxocarbon
   -- Built from IBM's Carbon design system palette. Mostly white/gray text
   -- with sharp accents: blue keywords, pink functions, cyan `def`,
   -- purple strings, teal None/True/False, green comments (COMMENT knob).
@@ -226,14 +227,13 @@ require("lazy").setup({
       })
 
       vim.o.background = "dark"
-      vim.cmd.colorscheme("oxocarbon")  -- this line is what makes it the active theme
     end,
   },
 
-  -- ---------- Colorscheme : VS Code Dark+ (backup) ----------
+  -- ---------- Colorscheme : VS Code Dark+ (the active one) ----------
   -- Same syntax colors as VS Code: blue def/class, pink if/return,
   -- yellow functions, light-blue variables, orange strings, green comments.
-  -- Switch with :colorscheme vscode
+  -- Go back to oxocarbon by moving the colorscheme() call below into its block.
   {
     "Mofiqul/vscode.nvim",
     lazy = false,
@@ -256,10 +256,48 @@ require("lazy").setup({
         }
       end
 
+      -- ===== TRANSPARENT KNOB =====
+      --   true   see-through editor: the terminal's background image shows
+      --   false  solid BG
+      local TRANSPARENT = true
+
       require("vscode").setup({
         style = "dark",
+        transparent = TRANSPARENT,
         color_overrides = overrides,
       })
+
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        pattern = "vscode",
+        desc = "Plain HTML text like VS Code, and the rest of TRANSPARENT",
+        callback = function()
+          -- Text between HTML tags is plain white in VS Code, but the theme
+          -- colors <h1>, <strong>, <a>... text blue/bold like Markdown
+          local fg = vim.api.nvim_get_hl(0, { name = "Normal" }).fg
+          for _, g in ipairs({ "heading", "heading.1", "heading.2", "heading.3", "heading.4",
+                               "heading.5", "heading.6", "strong", "italic", "underline",
+                               "strikethrough", "link.label", "raw" }) do
+            vim.api.nvim_set_hl(0, "@markup." .. g .. ".html", { fg = fg })
+          end
+
+          -- vscode.nvim's transparent option only clears the editor, so also clear
+          -- BG from the file tree, tab bar and the rest (popups stay solid)
+          if not (TRANSPARENT and BG) then return end
+          local bg = tonumber(BG:sub(2), 16)
+          for name, hl in pairs(vim.api.nvim_get_hl(0, {})) do
+            local popup = name:find("Float") or name:find("Pmenu") or name:find("Blink")
+              or name:find("Telescope") or name:find("WhichKey") or name:find("Lazy")
+              or name:find("Mason") or name:find("Notify")
+            if hl.bg == bg and not hl.link and not popup then
+              hl.bg = nil
+              vim.api.nvim_set_hl(0, name, hl)
+            end
+          end
+        end,
+      })
+
+      vim.o.background = "dark"
+      vim.cmd.colorscheme("vscode")  -- this line is what makes it the active theme
     end,
   },
 
