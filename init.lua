@@ -772,6 +772,26 @@ require("lazy").setup({
       require("toggleterm").setup({
         open_mapping = [[<C-\>]],
         direction = "float",
+        shade_terminals = false,  -- no darker box: Terminal's own background (and image) shows
+      })
+
+      -- Programs in the terminal (ls, git, python errors...) use the same 16
+      -- colors as plain Terminal.app (Basic profile), not the theme's.
+      -- Only the terminal changes; the editor keeps its theme.
+      local TERMINAL_APP_COLORS = {
+        "#000000", "#c23621", "#25bc24", "#adad27", "#492ee1", "#d338d3", "#33bbc8", "#cbcccd",  -- 0-7
+        "#818383", "#fc391f", "#31e722", "#eaec23", "#5833ff", "#f935f8", "#14f0f0", "#e9ebeb",  -- 8-15 (bright)
+      }
+      local function set_terminal_colors()
+        for i, color in ipairs(TERMINAL_APP_COLORS) do
+          vim.g["terminal_color_" .. (i - 1)] = color
+        end
+      end
+      set_terminal_colors()
+      -- themes set their own terminal colors when they load, so put these back after
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        desc = "Keep Terminal.app's colors in the built-in terminal",
+        callback = set_terminal_colors,
       })
     end,
   },
