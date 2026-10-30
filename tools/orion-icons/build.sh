@@ -4,7 +4,8 @@
 #   2. build_font.py  shapes -> color glyphs in "JetBrainsMono Orion" (out/)
 #   3. gen_lua.py     theme mappings -> lua/orion_icons/data.lua
 #   4. installs the fonts to ~/Library/Fonts
-# Needs JetBrainsMono Nerd Font Mono installed and the Orion repo at
+# Needs JetBrainsMonoNL Nerd Font Mono installed (comes with the Homebrew
+# font-jetbrains-mono-nerd-font cask) and the Orion repo at
 # ~/Documents/Amphion/orion. Run: sh build.sh
 set -e
 cd "$(dirname "$0")"

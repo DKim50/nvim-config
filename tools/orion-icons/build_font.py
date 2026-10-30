@@ -1,4 +1,5 @@
-# Add the Orion file icons to a copy of JetBrainsMono Nerd Font Mono.
+# Add the Orion file icons to a copy of JetBrainsMonoNL Nerd Font Mono (the
+# "No Ligatures" cut, so <= stays two characters instead of becoming ≤).
 # Each icon becomes one character at U+F3000 + n. It is a color glyph (COLR/CPAL:
 # one layer per SVG shape, in Orion's own colors), and its plain outline (all
 # layers merged) is the fallback where color glyphs aren't drawn.
@@ -104,7 +105,7 @@ def main():
 
     os.makedirs(OUT, exist_ok=True)
     for style in STYLES:
-        font = TTFont(os.path.join(FONTS, f"JetBrainsMonoNerdFontMono-{style}.ttf"))
+        font = TTFont(os.path.join(FONTS, f"JetBrainsMonoNLNerdFontMono-{style}.ttf"))
         order = font.getGlyphOrder()
         glyf, hmtx = font["glyf"], font["hmtx"]
         colr = {}
