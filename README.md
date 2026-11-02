@@ -40,6 +40,7 @@ xcode-select --install   # C compiler, needed to build treesitter parsers
 | node / npm | Mason installs `pyright`, `ts_ls` and the HTML, CSS and Emmet servers through npm |
 | python3 (with `venv`) | Mason installs `debugpy` for the Python debugger (`<leader>b`) |
 | A Nerd Font | file icons; set your terminal's font to *JetBrainsMono Nerd Font* |
+| `claude-agent-acp` | Claude Code in the agent panel's chat view: `npm install -g @agentclientprotocol/claude-agent-acp` |
 
 ### Orion file icons
 
@@ -80,6 +81,8 @@ Leader is `Space`.
 | `<leader>gb` / `<leader>gp` | Git blame line / preview hunk |
 | `<leader>rr` | Reload files changed on disk |
 | `Ctrl-\` | Floating terminal |
+| `<leader>aa` / `<leader>as` | Agent panel: open / close, swap chat ↔ terminal view |
+| `<leader>ap` / `<leader>ac` | Agent panel: pick an agent, send the selection or file |
 | `<leader>bb` / `<leader>bB` | Debug: toggle breakpoint / conditional breakpoint |
 | `<leader>bc` `bn` `bi` `bo` | Debug: continue (start), next line, step into, step out |
 | `F5` `F10` `F11` `F12` | Same as above (hold `fn` on a Mac laptop) |

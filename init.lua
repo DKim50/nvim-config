@@ -762,7 +762,9 @@ require("lazy").setup({
   {
     "folke/which-key.nvim",
     event = "VeryLazy",
-    opts = {},
+    opts = {
+      spec = { { "<leader>a", group = "agent panel" } },
+    },
   },
 
   -- ---------- Floating terminal ----------
@@ -793,6 +795,84 @@ require("lazy").setup({
         desc = "Keep Terminal.app's colors in the built-in terminal",
         callback = set_terminal_colors,
       })
+    end,
+  },
+
+  -- ---------- Agent panel : AI chat or terminal agents on the right ----------
+  -- One panel, two views, both run by CodeCompanion (lua/agent_panel.lua).
+  -- Separate from the Ctrl-\ terminal.
+  --   terminal  a plain shell: start any agent yourself (or pick one with Space a p)
+  --   chat      Claude Code in a normal Neovim buffer. Type, then Enter (normal
+  --             mode) or Ctrl-s to send. ga = change model, ? = all chat keys
+  --   Space a a   open / close the panel
+  --   Space a s   swap the view: chat <-> terminal
+  --   Space a p   pick an agent (chat or terminal)
+  --   Space a c   send the selection, or the current file, to the panel
+  {
+    "olimorris/codecompanion.nvim",
+    dependencies = { "nvim-lua/plenary.nvim", "nvim-treesitter/nvim-treesitter" },
+    cmd = { "CodeCompanion", "CodeCompanionChat", "CodeCompanionCLI", "CodeCompanionActions" },
+    keys = {
+      { "<leader>aa", function() require("agent_panel").toggle() end, desc = "Agent panel: open / close" },
+      { "<leader>as", function() require("agent_panel").swap() end, desc = "Agent panel: swap chat / terminal" },
+      { "<leader>ap", function() require("agent_panel").pick() end, desc = "Agent panel: pick agent" },
+      { "<leader>ac", function() require("agent_panel").send() end, mode = { "n", "v" }, desc = "Agent panel: send selection / file" },
+    },
+    config = function()
+      -- ===== AGENT PANEL KNOBS =====
+      -- Change these and restart nvim.
+      local VIEW = "terminal"            -- what Space a a opens first: "terminal" or "chat"
+      local TERMINAL_AGENT = "shell"     -- the terminal's agent: a TERMINAL_AGENTS name below
+      local CHAT_AGENT = "claude_code"   -- the chat's agent: a CHAT_CHOICES adapter below
+      local WIDTH = 0.2                  -- share of the screen the panel takes
+
+      -- Terminal agents offered by Space a p: any command-line agent. Add your
+      -- own the same way.
+      local TERMINAL_AGENTS = {
+        shell    = { cmd = "zsh", description = "Shell (start any agent yourself)" },
+        -- through zsh so the claude() login function in ~/.zshrc applies
+        claude   = { cmd = "zsh", args = { "-ic", "claude" }, description = "Claude Code" },
+        orion    = { cmd = "orion", description = "Orion" },
+        codex    = { cmd = "codex", description = "OpenAI Codex" },
+        opencode = { cmd = "opencode", description = "OpenCode" },
+        cursor   = { cmd = "cursor-agent", description = "Cursor Agent" },
+      }
+
+      -- Chat agents offered by Space a p. ACP agents (Claude Code, OpenCode)
+      -- run their own app in the background; Ollama talks to a local model.
+      -- Claude Code needs: npm install -g @agentclientprotocol/claude-agent-acp
+      local CHAT_CHOICES = {
+        { label = "Claude Code",                  adapter = "claude_code" },  -- your Claude login (see below)
+        { label = "OpenCode",                     adapter = "opencode" },     -- OpenCode's own login / free models
+        { label = "Ollama (local, on this Mac)",  adapter = "ollama" },       -- free, offline; pick the model with ga
+      }
+
+      -- Same login as `claude` in a terminal: the setup token when
+      -- `claude-login token` is on (~/.zshrc), otherwise your normal login
+      local function claude_setup_token()
+        local f = io.open(vim.fn.expand("~/.claude-login"))
+        local mode = f and f:read("*l")
+        if f then f:close() end
+        if mode ~= "token" then return nil end
+        local token = vim.fn.system({ "security", "find-generic-password", "-s", "claude-setup-token", "-a", "FarbodTavakkoli", "-w" })
+        return vim.v.shell_error == 0 and vim.trim(token) or nil
+      end
+
+      require("codecompanion").setup({
+        adapters = {
+          acp = { extend = { claude_code = { env = { CLAUDE_CODE_OAUTH_TOKEN = claude_setup_token } } } },
+        },
+        interactions = {
+          chat = { adapter = CHAT_AGENT },
+          -- don't call a model in the background to name each chat
+          background = { chat = { callbacks = { on_ready = { enabled = false } } } },
+          cli = { agent = TERMINAL_AGENT, agents = TERMINAL_AGENTS },
+        },
+        display = {
+          chat = { window = { position = "right", width = WIDTH } },  -- the terminal view uses this too
+        },
+      })
+      require("agent_panel").setup({ view = VIEW, chat_choices = CHAT_CHOICES })
     end,
   },
 
