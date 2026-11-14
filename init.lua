@@ -824,7 +824,7 @@ require("lazy").setup({
       local VIEW = "terminal"            -- what Space a a opens first: "terminal" or "chat"
       local TERMINAL_AGENT = "shell"     -- the terminal's agent: a TERMINAL_AGENTS name below
       local CHAT_AGENT = "claude_code"   -- the chat's agent: a CHAT_CHOICES adapter below
-      local WIDTH = 0.2                  -- share of the screen the panel takes
+      local WIDTH = 0.25                 -- share of the screen the panel takes
 
       -- Terminal agents offered by Space a p: any command-line agent. Add your
       -- own the same way.
@@ -869,7 +869,14 @@ require("lazy").setup({
           cli = { agent = TERMINAL_AGENT, agents = TERMINAL_AGENTS },
         },
         display = {
-          chat = { window = { position = "right", width = WIDTH } },  -- the terminal view uses this too
+          chat = {  -- the terminal view uses this too
+            window = {
+              position = "right",
+              width = WIDTH,
+              -- no line numbers or sign gutter in the panel, just the text
+              opts = { number = false, relativenumber = false, signcolumn = "no" },
+            },
+          },
         },
       })
       require("agent_panel").setup({ view = VIEW, chat_choices = CHAT_CHOICES })
