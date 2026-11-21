@@ -731,7 +731,20 @@ require("lazy").setup({
           javascript = { "prettier" },
           typescript = { "prettier" },
         },
-        format_on_save = { timeout_ms = 500, lsp_fallback = true },
+        format_on_save = function(bufnr)
+          local opts = { timeout_ms = 500, lsp_fallback = true }
+          if vim.bo[bufnr].filetype == "css" then
+            -- CSS goes to the css language server, which squeezes ".box > p"
+            -- into ".box>p" unless told to keep the spaces around > + ~
+            -- Catch: it also splits the ~= attribute selector, [title~="hi"]
+            -- -> [title ~ ="hi"], which breaks that rule. Switch CSS to
+            -- prettier (4-space indent) before using ~= (WEB201 Unit 7).
+            -- <style> blocks in HTML files are formatted by the html server
+            -- and still get squeezed.
+            opts.formatting_options = { spaceAroundSelectorSeparator = true }
+          end
+          return opts
+        end,
       })
     end,
   },
