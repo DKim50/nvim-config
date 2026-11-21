@@ -280,6 +280,15 @@ require("lazy").setup({
             vim.api.nvim_set_hl(0, "@markup." .. g .. ".html", { fg = fg })
           end
 
+          -- CSS like VS Code: the whole selector is gold (h2, .class, #id,
+          -- :hover, *), @media / @keyframes pink. Units (px) green and values
+          -- (gray, auto) orange come from after/queries/css/highlights.scm
+          for _, g in ipairs({ "tag", "type", "constant", "attribute", "character.special" }) do
+            vim.api.nvim_set_hl(0, "@" .. g .. ".css", { fg = "#D7BA7D" })
+          end
+          vim.api.nvim_set_hl(0, "@keyword.directive.css", { fg = "#C586C0" })
+          vim.api.nvim_set_hl(0, "@keyword.operator.css", { fg = "#D4D4D4" })  -- "and" in @media
+
           -- vscode.nvim's transparent option only clears the editor, so also clear
           -- BG from the file tree, tab bar and the rest (popups stay solid)
           if not (TRANSPARENT and BG) then return end
@@ -706,6 +715,10 @@ require("lazy").setup({
         signs = true,
         underline = true,
       })
+
+      -- CSS color previews (gray, #ff0000): a small colored square before the
+      -- value like VS Code, instead of painting the word's background
+      vim.lsp.document_color.enable(true, nil, { style = "■ " })
     end,
   },
 
