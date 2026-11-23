@@ -2,7 +2,8 @@
 
 My Neovim setup: a single-file `init.lua` using [lazy.nvim](https://github.com/folke/lazy.nvim).
 Plugins install themselves on first launch, pinned to the versions in `lazy-lock.json`.
-It also holds my [Ghostty](https://ghostty.org) terminal config, in `ghostty/`.
+It also holds my [Ghostty](https://ghostty.org) terminal config (`ghostty/`) and a Kali
+Linux style zsh prompt (`zsh/`).
 
 ## Install on a new machine
 
@@ -39,6 +40,25 @@ If Ghostty was opened before the link existed, it made a starter file at
 only). Delete it so `Cmd ,` opens the file in this repo. Then quit and reopen
 Ghostty. The font is *JetBrainsMono Orion* (see Orion file icons below); without
 it Ghostty falls back to its own font.
+
+### Kali-style zsh prompt (optional)
+
+`zsh/kali.zsh-theme` is an [oh-my-zsh](https://ohmyz.sh) theme: Kali Linux's
+two-line prompt in Kali's colors, plus the git branch.
+
+```
+┌──(user㉿computer)-[~/.config/nvim]-[main ✗]
+└─$
+```
+
+With oh-my-zsh installed, link the theme in:
+
+```sh
+ln -s ~/.config/nvim/zsh/kali.zsh-theme ~/.oh-my-zsh/custom/themes/kali.zsh-theme
+```
+
+then set `ZSH_THEME="kali"` in `~/.zshrc` and open a new tab. `~/.zshrc` itself
+stays out of this repo, since it holds private keys.
 
 ## Requirements
 
@@ -116,6 +136,7 @@ cd ~/.config/nvim
 git pull                  # get changes from another machine
 # then in nvim:  :Lazy restore   (match plugin versions to the lockfile)
 # and in Ghostty: Cmd Shift ,     (reload its config)
+# prompt changes show in a new terminal tab
 ```
 
 After `:Lazy update` or editing `init.lua`, commit and push so other machines get it:
