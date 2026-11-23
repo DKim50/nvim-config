@@ -1,0 +1,20 @@
+# Kali Dark: Kali Linux's terminal colors (QTerminal's Kali-Dark scheme,
+# from Kali's kali-themes package). Use with: theme = Kali Dark
+background = #23252e
+foreground = #ffffff
+palette = 0=#1f2229
+palette = 1=#d41919
+palette = 2=#5ebdab
+palette = 3=#fea44c
+palette = 4=#367bf0
+palette = 5=#9755b3
+palette = 6=#49aee6
+palette = 7=#e6e6e6
+palette = 8=#198388
+palette = 9=#ec0101
+palette = 10=#47d4b9
+palette = 11=#ff8a18
+palette = 12=#277fff
+palette = 13=#962ac3
+palette = 14=#05a1f7
+palette = 15=#ffffff

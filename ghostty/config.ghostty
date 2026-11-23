@@ -1,8 +1,9 @@
 # Ghostty config, set up to look like Terminal.app's "Basic" profile.
 #
 # It lives in the nvim-config repo (~/.config/nvim/ghostty/) so it's saved
-# on GitHub with the Neovim config. Ghostty reads it through a link:
-#   ~/.config/ghostty/config.ghostty -> ~/.config/nvim/ghostty/config.ghostty
+# on GitHub with the Neovim config. Ghostty reads this folder through a link:
+#   ~/.config/ghostty -> ~/.config/nvim/ghostty
+# so custom themes in themes/ (like Kali Dark) work by name too.
 #
 # Cmd ,        opens this file
 # Cmd Shift ,  reloads it after you save (some settings need a new window)
@@ -26,43 +27,49 @@ adjust-cell-height = 1
 font-thicken = true
 
 # ---------- Background ----------
-# Near-black at 80% so the desktop shows through, lightly blurred.
+# 80% solid so the desktop shows through, lightly blurred.
 # Terminal's blur slider (10%) is a blur radius of 6.
-background = #121212
 background-opacity = 0.8
 background-blur = 6
 
-# ---------- Text, cursor, selection ----------
-# Terminal's dark-mode defaults: white text, gray block cursor that
-# doesn't blink, blue selection that keeps each letter's own color
-foreground = #ffffff
-cursor-color = #9d9d9d
+# ---------- Cursor and bold ----------
+# Block cursor that doesn't blink, like Terminal
 cursor-style = block
 cursor-style-blink = false
-selection-background = #3f638b
-selection-foreground = cell-foreground
 # Bold text in a color uses the bright version of it, like Terminal
 bold-color = bright
 
-# ---------- The 16 colors ----------
-# Used by ls, git, Python errors... Terminal.app's built-in set, the same
-# ones your Neovim terminal uses
-palette = 0=#000000
-palette = 1=#c23621
-palette = 2=#25bc24
-palette = 3=#adad27
-palette = 4=#492ee1
-palette = 5=#d338d3
-palette = 6=#33bbc8
-palette = 7=#cbcccd
-palette = 8=#818383
-palette = 9=#fc391f
-palette = 10=#31e722
-palette = 11=#eaec23
-palette = 12=#5833ff
-palette = 13=#f935f8
-palette = 14=#14f0f0
-palette = 15=#e9ebeb
+# ---------- Colors ----------
+# Trying Kali Linux's terminal colors (themes/Kali Dark): dark slate
+# background, Kali blue and teal. Other themes to switch to:
+#   Builtin Tango Dark   Linux's Tango (GNOME Terminal's colors)
+# Browse more with: ghostty +list-themes
+theme = Kali Dark
+
+# Terminal.app's colors, turned off while trying a theme ("# " in front),
+# because these lines win over any theme. To go back to them: delete the
+# theme line above and remove the "# " from these lines.
+# background = #121212
+# foreground = #ffffff
+# cursor-color = #9d9d9d
+# selection-background = #3f638b
+# selection-foreground = cell-foreground
+# palette = 0=#000000
+# palette = 1=#c23621
+# palette = 2=#25bc24
+# palette = 3=#adad27
+# palette = 4=#492ee1
+# palette = 5=#d338d3
+# palette = 6=#33bbc8
+# palette = 7=#cbcccd
+# palette = 8=#818383
+# palette = 9=#fc391f
+# palette = 10=#31e722
+# palette = 11=#eaec23
+# palette = 12=#5833ff
+# palette = 13=#f935f8
+# palette = 14=#14f0f0
+# palette = 15=#e9ebeb
 
 # ---------- Window ----------
 # Normal macOS title bar and tabs, new windows 80 x 24 like Terminal

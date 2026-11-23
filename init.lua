@@ -306,7 +306,10 @@ require("lazy").setup({
       })
 
       vim.o.background = "dark"
-      vim.cmd.colorscheme("vscode")  -- this line is what makes it the active theme
+      -- This line is what makes the active theme. Trying "kali" (Kali Linux's
+      -- colors, colors/kali.lua). Others: "tango" (Linux's Tango,
+      -- colors/tango.lua), "vscode" (VS Code's).
+      vim.cmd.colorscheme("kali")
     end,
   },
 
@@ -628,6 +631,24 @@ require("lazy").setup({
         view = { width = 32 },
         renderer = { group_empty = true, decorators = decorators },
         filters = { dotfiles = false },
+      })
+
+      -- File and folder names in the theme's normal (white) text, like VS
+      -- Code's explorer, instead of blue folders and colored special files.
+      -- Icons and git marks keep their colors. Re-applied on :colorscheme.
+      local function white_tree_names()
+        local fg = vim.api.nvim_get_hl(0, { name = "Normal", link = false }).fg
+        for _, g in ipairs({ "NvimTreeFolderName", "NvimTreeOpenedFolderName", "NvimTreeEmptyFolderName",
+                             "NvimTreeSymlinkFolderName", "NvimTreeSymlink", "NvimTreeSpecialFile",
+                             "NvimTreeExecFile", "NvimTreeImageFile" }) do
+          vim.api.nvim_set_hl(0, g, { fg = fg })
+        end
+        vim.api.nvim_set_hl(0, "NvimTreeRootFolder", { fg = fg, bold = true })
+      end
+      white_tree_names()
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        desc = "Keep file tree names white",
+        callback = white_tree_names,
       })
       map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle file tree" })
     end,

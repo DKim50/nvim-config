@@ -26,13 +26,13 @@ the exact commit in `lazy-lock.json`, then restart.
 ### Ghostty (optional)
 
 `ghostty/config.ghostty` makes Ghostty look like Terminal.app's Basic profile: same
-font, see-through blurred background, colors and padding (text is a touch bigger,
-11.5). Link it into the place Ghostty looks, so the file in this repo is the one
-Ghostty reads:
+font, see-through blurred background and padding (text is a touch bigger, 11.5).
+Its color theme is one line, and `ghostty/themes/` holds custom themes (Kali Dark).
+Link the folder into the place Ghostty looks, so the files in this repo are the
+ones Ghostty reads (move any existing `~/.config/ghostty` out of the way first):
 
 ```sh
-mkdir -p ~/.config/ghostty
-ln -s ~/.config/nvim/ghostty/config.ghostty ~/.config/ghostty/config.ghostty
+ln -s ~/.config/nvim/ghostty ~/.config/ghostty
 ```
 
 If Ghostty was opened before the link existed, it made a starter file at
