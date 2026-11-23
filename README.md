@@ -38,8 +38,9 @@ ln -s ~/.config/nvim/ghostty ~/.config/ghostty
 If Ghostty was opened before the link existed, it made a starter file at
 `~/Library/Application Support/com.mitchellh.ghostty/config.ghostty` (comments
 only). Delete it so `Cmd ,` opens the file in this repo. Then quit and reopen
-Ghostty. The font is *JetBrainsMono Orion* (see Orion file icons below); without
-it Ghostty falls back to its own font.
+Ghostty. The font is *JetBrainsMono Orion* in its SemiBold weight, so text isn't
+thin on non-Retina screens (see Orion file icons below; the build makes every
+weight). Without it Ghostty falls back to its own font.
 
 ### Kali-style zsh prompt (optional)
 

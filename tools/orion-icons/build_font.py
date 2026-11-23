@@ -16,7 +16,10 @@ from fontTools.colorLib.builder import buildCOLR, buildCPAL
 
 THEME = os.path.expanduser("~/Documents/Amphion/orion/Orion/ide/extensions/theme-orion-icons/src/orion-icon-theme.json")
 FONTS = os.path.expanduser("~/Library/Fonts")
-STYLES = ["Regular", "Bold", "Italic", "BoldItalic"]
+# Medium and SemiBold are heavier cuts of regular text, for screens where
+# Regular looks thin (pick one with font-style in Ghostty's config)
+STYLES = ["Regular", "Bold", "Italic", "BoldItalic",
+          "Medium", "MediumItalic", "SemiBold", "SemiBoldItalic"]
 FIRST = 0xF3000
 SIZE = 960          # an icon's 24-unit viewBox spans this many font units (cell is 600 wide; art is ~3/4 of it)
 CENTER = (300, 360) # middle of the cell: x half the advance, y middle of the line box
@@ -139,14 +142,24 @@ def main():
 
         # New family name so it installs next to the original
         family, ps_style = "JetBrainsMono Orion", style
-        sub = {"BoldItalic": "Bold Italic"}.get(style, style)
+        sub = re.sub(r"(?<=.)Italic$", " Italic", style)  # "BoldItalic" -> "Bold Italic"
         name = font["name"]
         for rec in list(name.names):
             if rec.nameID in (1, 2, 3, 4, 6, 16, 17):
                 name.removeNames(nameID=rec.nameID)
-        rib = sub if sub in ("Regular", "Bold", "Italic", "Bold Italic") else "Regular"
-        name.setName(family, 1, 3, 1, 0x409); name.setName(family, 1, 1, 0, 0)
-        name.setName(rib, 2, 3, 1, 0x409); name.setName(rib, 2, 1, 0, 0)
+        if sub in ("Regular", "Bold", "Italic", "Bold Italic"):
+            name.setName(family, 1, 3, 1, 0x409); name.setName(family, 1, 1, 0, 0)
+            name.setName(sub, 2, 3, 1, 0x409); name.setName(sub, 2, 1, 0, 0)
+        else:
+            # Weights beyond the basic four: old apps see their own family
+            # ("JetBrainsMono Orion Medium"), new ones (16/17) see one family
+            # with a "Medium" style
+            weight = sub.replace(" Italic", "")
+            rib = "Italic" if sub.endswith("Italic") else "Regular"
+            name.setName(f"{family} {weight}", 1, 3, 1, 0x409); name.setName(f"{family} {weight}", 1, 1, 0, 0)
+            name.setName(rib, 2, 3, 1, 0x409); name.setName(rib, 2, 1, 0, 0)
+            name.setName(family, 16, 3, 1, 0x409)
+            name.setName(sub, 17, 3, 1, 0x409)
         name.setName(f"{family} {sub}", 4, 3, 1, 0x409); name.setName(f"{family} {sub}", 4, 1, 0, 0)
         name.setName(f"JetBrainsMonoOrion-{ps_style}", 6, 3, 1, 0x409); name.setName(f"JetBrainsMonoOrion-{ps_style}", 6, 1, 0, 0)
         name.setName(f"JetBrainsMonoOrion-{ps_style};orion-icons", 3, 3, 1, 0x409)

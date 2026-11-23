@@ -1,7 +1,7 @@
 -- Kali: Kali Linux's code colors, to go with Ghostty's "Kali Dark" theme.
 -- Taken from the Kali-Dark style Kali ships for its text editors
 -- (kali-themes, gtksourceview), using GNOME's rules for which part of the
--- code gets which color: cyan comments, crimson keywords, blue functions
+-- code gets which color: cyan comments, pink keywords, blue functions
 -- and types, teal-green strings, purple numbers, red escapes like \n.
 -- Turn on with :colorscheme kali. init.lua picks the one that loads.
 
@@ -28,7 +28,7 @@ local c = {
   cyan = "#49aee6",
   green = "#5ebdab",
   purple = "#9755b3",
-  crimson = "#bf2e5e",  -- Kali calls it "bordeaux"
+  pink = "#f4719d",     -- Kali's own is a darker red ("bordeaux", #bf2e5e)
   red = "#d41919",
   orange = "#fd7d00",
   yellow = "#fea44c",   -- Kali's terminal yellow
@@ -101,13 +101,13 @@ local groups = {
   SpellRare = { undercurl = true, sp = c.purple },
   SpellLocal = { undercurl = true, sp = c.green },
 
-  -- ---------- Git and diffs (Kali: added green, changed crimson, removed purple) ----------
+  -- ---------- Git and diffs (added green, changed pink, removed purple) ----------
   DiffAdd = { bg = "#2f4347" },
-  DiffChange = { bg = "#422738" },
+  DiffChange = { bg = "#4d3444" },
   DiffDelete = { fg = c.purple, bg = "#3a2f49" },
-  DiffText = { bg = "#612941" },
+  DiffText = { bg = "#77435a" },
   Added = { fg = c.green },
-  Changed = { fg = c.crimson },
+  Changed = { fg = c.pink },
   Removed = { fg = c.purple },
 
   -- ---------- Errors and warnings from the language server ----------
@@ -134,17 +134,17 @@ local groups = {
   Number = { fg = c.purple },
   Float = { fg = c.purple },
   Boolean = { fg = c.purple },
-  Identifier = { fg = c.crimson },
+  Identifier = { fg = c.pink },
   Function = { fg = c.blue },
-  Statement = { fg = c.crimson },
+  Statement = { fg = c.pink },
   Conditional = { link = "Statement" },
   Repeat = { link = "Statement" },
   Label = { link = "Statement" },
   Keyword = { link = "Statement" },
   Exception = { link = "Statement" },
   -- GNOME colors operators (= + >) like keywords
-  Operator = { fg = c.crimson },
-  PreProc = { fg = c.crimson },
+  Operator = { fg = c.pink },
+  PreProc = { fg = c.pink },
   Include = { link = "PreProc" },
   Define = { link = "PreProc" },
   Macro = { link = "PreProc" },
@@ -156,7 +156,7 @@ local groups = {
   -- built-ins like print, len, int
   Special = { fg = c.cyan },
   SpecialChar = { fg = c.red },
-  Tag = { fg = c.crimson },
+  Tag = { fg = c.pink },
   Delimiter = { fg = c.fg },
   SpecialComment = { fg = c.cyan, bold = true },
   Debug = { fg = c.red },
@@ -191,14 +191,14 @@ local groups = {
   ["@markup.quote"] = { fg = c.gray, italic = true },
 
   -- CSS, by GNOME's CSS rules: tag selectors blue, .class and #id
-  -- crimson, :hover blue, property names crimson, values blue, sizes purple
+  -- pink, :hover blue, property names pink, values blue, sizes purple
   ["@tag.css"] = { fg = c.blue },
-  ["@type.css"] = { fg = c.crimson },
-  ["@constant.css"] = { fg = c.crimson },
+  ["@type.css"] = { fg = c.pink },
+  ["@constant.css"] = { fg = c.pink },
   ["@attribute.css"] = { fg = c.blue },
   ["@character.special.css"] = { fg = c.fg },
-  ["@property.css"] = { fg = c.crimson },
-  ["@variable.css"] = { fg = c.crimson },
+  ["@property.css"] = { fg = c.pink },
+  ["@variable.css"] = { fg = c.pink },
   ["@string.css"] = { fg = c.blue },
   ["@operator.css"] = { fg = c.fg },
   ["@operator.html"] = { fg = c.fg },

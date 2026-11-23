@@ -25,6 +25,11 @@ adjust-cell-height = 1
 # Without it thin white text looks gray. Lower font-thicken-strength
 # (0-255, default 255) if it looks too bold.
 font-thicken = true
+# SemiBold weight for normal text, so code doesn't look thin. Lighter:
+# Medium (and Medium Italic); delete both lines to go back to Regular.
+# Bold text stays Bold.
+font-style = SemiBold
+font-style-italic = SemiBold Italic
 
 # ---------- Background ----------
 # 80% solid so the desktop shows through, lightly blurred.
@@ -45,6 +50,9 @@ bold-color = bright
 #   Builtin Tango Dark   Linux's Tango (GNOME Terminal's colors)
 # Browse more with: ghostty +list-themes
 theme = Kali Dark
+# Kali's own background is a lighter slate (#23252e), which makes text look
+# thin. Keep the near-black instead; delete this line for Kali's slate.
+background = #121212
 
 # Terminal.app's colors, turned off while trying a theme ("# " in front),
 # because these lines win over any theme. To go back to them: delete the
