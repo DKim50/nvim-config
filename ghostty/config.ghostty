@@ -45,14 +45,13 @@ cursor-style-blink = false
 bold-color = bright
 
 # ---------- Colors ----------
-# Trying Kali Linux's terminal colors (themes/Kali Dark): dark slate
-# background, Kali blue and teal. Other themes to switch to:
+# The Cursor editor's terminal colors: near-black #141414, soft colors.
+# Other themes to switch to:
+#   Kali Dark            Kali Linux (themes/Kali Dark). Its background is a
+#                        lighter slate, so add  background = #121212  under it
 #   Builtin Tango Dark   Linux's Tango (GNOME Terminal's colors)
 # Browse more with: ghostty +list-themes
-theme = Kali Dark
-# Kali's own background is a lighter slate (#23252e), which makes text look
-# thin. Keep the near-black instead; delete this line for Kali's slate.
-background = #121212
+theme = Cursor Dark
 
 # Terminal.app's colors, turned off while trying a theme ("# " in front),
 # because these lines win over any theme. To go back to them: delete the

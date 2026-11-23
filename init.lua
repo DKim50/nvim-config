@@ -306,10 +306,11 @@ require("lazy").setup({
       })
 
       vim.o.background = "dark"
-      -- This line is what makes the active theme. Trying "kali" (Kali Linux's
-      -- colors, colors/kali.lua). Others: "tango" (Linux's Tango,
-      -- colors/tango.lua), "vscode" (VS Code's).
-      vim.cmd.colorscheme("kali")
+      -- This line is what makes the active theme: "cursor" (the Cursor
+      -- editor's Cursor Dark, colors/cursor.lua). Others: "kali" (Kali Linux,
+      -- colors/kali.lua), "tango" (Linux's Tango, colors/tango.lua),
+      -- "vscode" (VS Code's).
+      vim.cmd.colorscheme("cursor")
     end,
   },
 
