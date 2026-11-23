@@ -2,6 +2,7 @@
 
 My Neovim setup: a single-file `init.lua` using [lazy.nvim](https://github.com/folke/lazy.nvim).
 Plugins install themselves on first launch, pinned to the versions in `lazy-lock.json`.
+It also holds my [Ghostty](https://ghostty.org) terminal config, in `ghostty/`.
 
 ## Install on a new machine
 
@@ -20,6 +21,24 @@ nvim
 
 Once the first launch finishes, run `:Lazy restore` to make sure every plugin is at
 the exact commit in `lazy-lock.json`, then restart.
+
+### Ghostty (optional)
+
+`ghostty/config.ghostty` makes Ghostty look like Terminal.app's Basic profile: same
+font, see-through blurred background, colors and padding (text is a touch bigger,
+11.5). Link it into the place Ghostty looks, so the file in this repo is the one
+Ghostty reads:
+
+```sh
+mkdir -p ~/.config/ghostty
+ln -s ~/.config/nvim/ghostty/config.ghostty ~/.config/ghostty/config.ghostty
+```
+
+If Ghostty was opened before the link existed, it made a starter file at
+`~/Library/Application Support/com.mitchellh.ghostty/config.ghostty` (comments
+only). Delete it so `Cmd ,` opens the file in this repo. Then quit and reopen
+Ghostty. The font is *JetBrainsMono Orion* (see Orion file icons below); without
+it Ghostty falls back to its own font.
 
 ## Requirements
 
@@ -96,6 +115,7 @@ Press `Space` and wait to see everything in the which-key popup.
 cd ~/.config/nvim
 git pull                  # get changes from another machine
 # then in nvim:  :Lazy restore   (match plugin versions to the lockfile)
+# and in Ghostty: Cmd Shift ,     (reload its config)
 ```
 
 After `:Lazy update` or editing `init.lua`, commit and push so other machines get it:
