@@ -16,7 +16,10 @@ local TRANSPARENT = true
 --   "#23252e"  Kali's dark slate (its editor and terminal background)
 local BG = "#23252e"
 
--- Kali-Dark's colors
+-- Kali-Dark's colors. The code colors are lightened for the near-black
+-- background: same hue as Kali's, just brighter, until each is easy to read
+-- (contrast 7:1 or more, red 5.7:1) while staying clearly different from
+-- the others. Kali's originals are on the right.
 local c = {
   fg = "#f8f8f0",       -- "bone white" text
   line = "#333333",     -- the line you're on
@@ -24,13 +27,13 @@ local c = {
   black = "#1f2229",    -- Kali's black (popups)
   dim = "#4c4f5c",      -- spaces, line numbers
   gray = "#cccccc",
-  blue = "#4a88f1",
-  cyan = "#49aee6",
-  green = "#5ebdab",
-  purple = "#9755b3",
-  pink = "#f4719d",     -- Kali's own is a darker red ("bordeaux", #bf2e5e)
-  red = "#d41919",
-  orange = "#fd7d00",
+  blue = "#669ffe",     -- Kali #4a88f1
+  cyan = "#69c8ff",     -- Kali #49aee6 (kept a step lighter than blue)
+  green = "#66c5b3",    -- Kali #5ebdab
+  purple = "#c985e7",   -- Kali #9755b3
+  pink = "#fd79a4",     -- Kali's is a dark red ("bordeaux", #bf2e5e)
+  red = "#ff4d41",      -- Kali #d41919
+  orange = "#ff8c3b",   -- Kali #fd7d00
   yellow = "#fea44c",   -- Kali's terminal yellow
   accent = "#367bf0",   -- Kali's terminal blue (menu selection)
   white = "#ffffff",
