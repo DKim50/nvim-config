@@ -52,6 +52,10 @@ bold-color = bright
 #   Builtin Tango Dark   Linux's Tango (GNOME Terminal's colors)
 # Browse more with: ghostty +list-themes
 theme = Cursor Dark
+# Selected text: light blue behind it, each letter keeps its color
+# (Cursor Dark's own is gray with whitish text)
+selection-background = #3f638b
+selection-foreground = cell-foreground
 
 # Terminal.app's colors, turned off while trying a theme ("# " in front),
 # because these lines win over any theme. To go back to them: delete the

@@ -363,20 +363,15 @@ require("lazy").setup({
     lazy = false,
     priority = 1000,
     config = function()
-      -- ===== HEADER TEXT KNOB =====
-      -- Make your own at patorjk.com/software/taag  (font: "ANSI Shadow")
-      local header = {
-        "███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗",
-        "████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║",
-        "██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║",
-        "██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║",
-        "██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║",
-        "╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
+      -- ===== HEADER : Neovim's own logo =====
+      -- The thin N from Neovim's built-in start screen (:intro), in its
+      -- colors: the left bar cyan, the rest green. Each row: { cyan, green }.
+      local LOGO = {
+        { "│", " ╲ ││" },
+        { "││", "╲╲││" },
+        { "││", " ╲ │" },
       }
-
-      -- One color per header line, top to bottom: an oxocarbon gradient
-      -- from cyan through blue and purple to pink.
-      local gradient = { "#3ddbd9", "#82cfff", "#78a9ff", "#be95ff", "#ff7eb6", "#ee5396" }
+      local LOGO_CYAN, LOGO_GREEN = "#8cf8f7", "#b3f6c0"
 
       -- ===== STARFIELD KNOB =====
       -- Twinkling stars in the empty space around the menu.
@@ -403,9 +398,8 @@ require("lazy").setup({
       end
 
       local function set_colors()
-        for i, color in ipairs(gradient) do
-          vim.api.nvim_set_hl(0, "DashHeader" .. i, { fg = color })
-        end
+        vim.api.nvim_set_hl(0, "DashLogoCyan", { fg = LOGO_CYAN })
+        vim.api.nvim_set_hl(0, "DashLogoGreen", { fg = LOGO_GREEN })
         local normal_bg = vim.api.nvim_get_hl(0, { name = "Normal" }).bg
         local bg = normal_bg and string.format("#%06x", normal_bg) or "#000000"
         for c, color in ipairs(STARS.colors) do
@@ -419,10 +413,19 @@ require("lazy").setup({
       vim.api.nvim_create_autocmd("ColorScheme", { callback = set_colors })
 
       local header_section = {}
-      for i, line in ipairs(header) do
-        local color = "DashHeader" .. math.min(i, #gradient)
-        table.insert(header_section, { text = { { line, hl = color, align = "center" } } })
+      for _, row in ipairs(LOGO) do
+        table.insert(header_section, {
+          align = "center",
+          text = { { row[1], hl = "DashLogoCyan" }, { row[2], hl = "DashLogoGreen" } },
+        })
       end
+      -- "NVIM v0.12.5" under the logo, as on Neovim's own screen
+      local v = vim.version()
+      header_section[#header_section].padding = 1
+      table.insert(header_section, {
+        align = "center",
+        text = { { ("NVIM v%d.%d.%d"):format(v.major, v.minor, v.patch), hl = "DashLogoGreen" } },
+      })
       header_section[#header_section].padding = 2  -- space below the logo
 
       require("snacks").setup({
